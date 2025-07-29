@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>四杆机构动画</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    svg {
+      background-color: #f9f9f9;
+      border: 1px solid #ccc;
+    }
+    line {
+      stroke: #0074D9;
+      stroke-width: 4;
+    }
+    circle {
+      fill: #333;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    .controls label {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>平面四杆机构动画</h2>
+
+<svg id="linkage" width="600" height="400" viewBox="0 0 600 400">
+  <!-- 固定点 -->
+  <circle id="A" r="5" cx="200" cy="200"/>
+  <circle id="B" r="5" cx="400" cy="200"/>
+  
+  <!-- 连杆 -->
+  <line id="AC" />
+  <line id="CD" />
+  <line id="DB" />
+  <circle id="C" r="5"/>
+  <circle id="D" r="5"/>
+
+  <!-- D点轨迹 -->
+  <path id="DPath" fill="none" stroke="red" stroke-width="1"/>
+</svg>
+
+<div class="controls">
+  <label>AC长度: <input type="range" id="L1" min="10" max="200" value="100"> <span id="L1Val">100</span></label>
+  <label>CD长度: <input type="range" id="L2" min="50" max="200" value="150"> <span id="L2Val">150</span></label>
+  <label>DB长度: <input type="range" id="L3" min="10" max="200" value="100"> <span id="L3Val">100</span></label>
+  <label><input type="checkbox" id="showTrace" checked> 显示D点轨迹</label>
+</div>
+
+<script>
+  const A = { x: 200, y: 200 };
+  const B = { x: 400, y: 200 };
+
+  let theta = 0;
+  let tracePoints = [];
+
+  function animate() {
+    // 获取杆长值
+    const L1 = parseFloat(document.getElementById("L1").value);
+    const L2 = parseFloat(document.getElementById("L2").value);
+    const L3 = parseFloat(document.getElementById("L3").value);
+    document.getElementById("L1Val").textContent = L1;
+    document.getElementById("L2Val").textContent = L2;
+    document.getElementById("L3Val").textContent = L3;
+
+    theta += 0.02;
+
+    const C = {
+      x: A.x + L1 * Math.cos(theta),
+      y: A.y + L1 * Math.sin(theta)
+    };
+
+    const dx = B.x - C.x;
+    const dy = B.y - C.y;
+    const d = Math.hypot(dx, dy);
+
+    if (d > L2 + L3 || d < Math.abs(L2 - L3)) {
+      requestAnimationFrame(animate);
+      return;
+    }
+
+    const a = (L2 * L2 - L3 * L3 + d * d) / (2 * d);
+    const h = Math.sqrt(L2 * L2 - a * a);
+    const cx2 = C.x + a * dx / d;
+    const cy2 = C.y + a * dy / d;
+    const rx = -dy * (h / d);
+    const ry = dx * (h / d);
+    const D = {
+      x: cx2 + rx,
+      y: cy2 + ry
+    };
+
+    // 更新杆件位置
+    document.getElementById("AC").setAttribute("x1", A.x);
+    document.getElementById("AC").setAttribute("y1", A.y);
+    document.getElementById("AC").setAttribute("x2", C.x);
+    document.getElementById("AC").setAttribute("y2", C.y);
+
+    document.getElementById("CD").setAttribute("x1", C.x);
+    document.getElementById("CD").setAttribute("y1", C.y);
+    document.getElementById("CD").setAttribute("x2", D.x);
+    document.getElementById("CD").setAttribute("y2", D.y);
+
+    document.getElementById("DB").setAttribute("x1", D.x);
+    document.getElementById("DB").setAttribute("y1", D.y);
+    document.getElementById("DB").setAttribute("x2", B.x);
+    document.getElementById("DB").setAttribute("y2", B.y);
+
+    document.getElementById("C").setAttribute("cx", C.x);
+    document.getElementById("C").setAttribute("cy", C.y);
+    document.getElementById("D").setAttribute("cx", D.x);
+    document.getElementById("D").setAttribute("cy", D.y);
+
+    // 绘制轨迹（可切换）
+    if (document.getElementById("showTrace").checked) {
+      tracePoints.push([D.x, D.y]);
+      const pathData = tracePoints.map((p, i) =>
+        (i === 0 ? "M" : "L") + p[0].toFixed(2) + "," + p[1].toFixed(2)
+      ).join(" ");
+      document.getElementById("DPath").setAttribute("d", pathData);
+      document.getElementById("DPath").style.display = "inline";
+    } else {
+      document.getElementById("DPath").style.display = "none";
+      tracePoints = [];
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+</script>
+
+</body>
+</html>

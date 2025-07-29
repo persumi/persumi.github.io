@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZYX Euler Angle Rotation</title>
+<script src="./three.min.js"></script>
+<script src="./OrbitControls.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; background: #111; }
+    #controls {
+      position: absolute; top: 10px; left: 10px; background: #fff;
+      padding: 10px; border-radius: 8px;
+      z-index: 10;
+    }
+    label { display: block; margin: 5px 0 2px; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label>Yaw (Z)</label>
+    <input type="range" id="yaw" min="-180" max="180" value="0">
+    <label>Pitch (Y)</label>
+    <input type="range" id="pitch" min="-180" max="180" value="0">
+    <label>Roll (X)</label>
+    <input type="range" id="roll" min="-180" max="180" value="0">
+  </div>
+<script src="./three.min.js"></script>
+<script src="./OrbitControls.js"></script>
+
+
+  <script>
+    // 创建场景和相机
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(3, 3, 3);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // 控制器
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.update();
+
+    // 添加坐标轴和立方体
+    scene.add(new THREE.AxesHelper(2));
+    const cube = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.MeshNormalMaterial()
+    );
+    scene.add(cube);
+
+    // 滑块引用
+    const yawSlider = document.getElementById('yaw');
+    const pitchSlider = document.getElementById('pitch');
+    const rollSlider = document.getElementById('roll');
+
+    // 更新旋转
+    function updateRotation() {
+      const yaw = THREE.MathUtils.degToRad(parseFloat(yawSlider.value));   // Z
+      const pitch = THREE.MathUtils.degToRad(parseFloat(pitchSlider.value)); // Y
+      const roll = THREE.MathUtils.degToRad(parseFloat(rollSlider.value));   // X
+
+      cube.setRotationFromEuler(new THREE.Euler(roll, pitch, yaw, 'ZYX'));
+    }
+
+    yawSlider.addEventListener('input', updateRotation);
+    pitchSlider.addEventListener('input', updateRotation);
+    rollSlider.addEventListener('input', updateRotation);
+    updateRotation();
+
+    // 动画循环
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
